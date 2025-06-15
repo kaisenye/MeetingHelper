@@ -14,7 +14,8 @@ struct MeetingHelperApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(width: 300, height: 200)
+                .frame(minWidth: 800, minHeight: 600)
         }
+        .windowResizability(.contentSize)
     }
 }

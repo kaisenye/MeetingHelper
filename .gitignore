@@ -1,0 +1,16 @@
+//
+//  .gitignore
+//  MeetingHelper
+//
+//  Created by Kaisen Ye on 6/13/25.
+//
+
+# macOS
+.DS_Store
+
+# Xcode
+*.xcuserdata
+*.xccheckout
+*.xcscmblueprint
+DerivedData/
+build/

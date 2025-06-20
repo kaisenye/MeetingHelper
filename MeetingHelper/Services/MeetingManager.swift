@@ -69,7 +69,7 @@ class MeetingManager: ObservableObject {
     }
     
     // MARK: - Meeting Control
-    func startMeeting(title: String, audioSource: AudioSource = .microphone, participants: [String] = []) async {
+    func startMeeting(title: String, description: String? = nil, audioSource: AudioSource = .microphone, participants: [String] = []) async {
         do {
             // Request permissions
             let audioPermission = await audioService.requestPermission()
@@ -84,7 +84,8 @@ class MeetingManager: ObservableObject {
             let meeting = Meeting(
                 title: title,
                 audioSource: audioSource,
-                participants: participants
+                participants: participants,
+                description: description
             )
             
             // Create audio file URL
@@ -223,6 +224,13 @@ class MeetingManager: ObservableObject {
     
     func deleteMeeting(_ meeting: Meeting) {
         fileService.deleteMeeting(meeting)
+    }
+    
+    // MARK: - Meeting Updates
+    func updateMeeting(_ meeting: Meeting, title: String, description: String?) {
+        var updatedMeeting = meeting
+        updatedMeeting.updateDetails(title: title, description: description)
+        fileService.updateMeeting(updatedMeeting)
     }
     
     // MARK: - Search

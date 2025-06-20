@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @StateObject private var meetingManager = MeetingManager()
     @State private var showingNewMeetingSheet = false
     @State private var showingMeetingDetail = false
+    @State private var showingEditMeetingSheet = false
     @State private var selectedMeeting: Meeting?
+    @State private var meetingToEdit: Meeting?
     @State private var searchText = ""
     
     // Computed property to avoid multiple updates per frame
@@ -40,28 +43,38 @@ struct ContentView: View {
                 // Meeting list
                 meetingListView
             }
-            .navigationTitle("Meeting Helper")
-            .background(Color(.windowBackgroundColor))
-            .navigationSplitViewColumnWidth(min: 100, ideal: 150)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: { showingNewMeetingSheet = true }) {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
+            .navigationTitle("Meetings")
         } detail: {
-            // Detail view
-            if let meeting = selectedMeeting {
-                MeetingDetailView(meeting: meeting, meetingManager: meetingManager)
+            if let selection = selectedMeeting {
+                MeetingDetailView(meeting: selection, meetingManager: meetingManager)
             } else if meetingManager.currentMeeting != nil {
                 ActiveMeetingView(meetingManager: meetingManager)
             } else {
                 EmptyDetailView()
             }
         }
+        .toolbar {
+            ToolbarItemGroup {
+                Button(action: {
+                    toggleSidebar()
+                }) {
+                    Image(systemName: "sidebar.leading")
+                }
+
+                Button(action: {
+                    showingNewMeetingSheet = true
+                }) {
+                    Label("New Meeting", systemImage: "plus")
+                }
+            }
+        }
         .sheet(isPresented: $showingNewMeetingSheet) {
             NewMeetingView(meetingManager: meetingManager)
+        }
+        .sheet(isPresented: $showingEditMeetingSheet) {
+            if let meetingToEdit = meetingToEdit {
+                EditMeetingView(meetingManager: meetingManager, meeting: meetingToEdit)
+            }
         }
         .alert("Error", isPresented: .constant(meetingManager.error != nil)) {
             Button("OK") {
@@ -105,25 +118,51 @@ struct ContentView: View {
     // MARK: - Meeting List View
     
     private var meetingListView: some View {
-        List(selection: $selectedMeeting) {
-            ForEach(filteredMeetings, id: \.id) { meeting in
-                MeetingRowView(meeting: meeting)
-                    .tag(meeting)
-                    .contextMenu {
-                        Button("Export Transcript") {
-                            exportTranscript(for: meeting)
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                // Top padding
+                Color.clear.frame(height: 12)
+                
+                ForEach(filteredMeetings, id: \.id) { meeting in
+                    MeetingRowView(meeting: meeting)
+                        .tag(meeting)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(selectedMeeting?.id == meeting.id ? Color.accentColor.opacity(0.1) : Color.clear)
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            selectedMeeting = meeting
                         }
-                        Button("Delete", role: .destructive) {
-                            deleteMeeting(meeting)
+                        .contextMenu {
+                            Button("Edit") {
+                                editMeeting(meeting)
+                            }
+                            Button("Export Transcript") {
+                                exportTranscript(for: meeting)
+                            }
+                            Button("Delete", role: .destructive) {
+                                deleteMeeting(meeting)
+                            }
                         }
-                    }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                }
+                
+                // Bottom padding
+                Color.clear.frame(height: 12)
             }
         }
-        .listStyle(.sidebar)
         .background(Color(.windowBackgroundColor))
+        .scrollIndicators(.visible)
     }
     
     // MARK: - Actions
+    
+    private func editMeeting(_ meeting: Meeting) {
+        meetingToEdit = meeting
+        showingEditMeetingSheet = true
+    }
     
     private func exportTranscript(for meeting: Meeting) {
         // Export functionality - could show a sheet with format options
@@ -138,6 +177,10 @@ struct ContentView: View {
         if selectedMeeting?.id == meeting.id {
             selectedMeeting = nil
         }
+    }
+    
+    private func toggleSidebar() {
+        NSApp.keyWindow?.firstResponder?.tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
     }
 }
 

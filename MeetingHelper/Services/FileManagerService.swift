@@ -135,6 +135,24 @@ class FileManagerService: ObservableObject {
         }
     }
     
+    func updateMeeting(_ meeting: Meeting) {
+        do {
+            let meetingData = try encoder.encode(meeting)
+            let meetingURL = meetingsDirectory.appendingPathComponent("\(meeting.id.uuidString).json")
+            try meetingData.write(to: meetingURL)
+            
+            // Update local array
+            if let index = meetings.firstIndex(where: { $0.id == meeting.id }) {
+                meetings[index] = meeting
+            }
+            
+            print("✅ Meeting updated: \(meeting.title)")
+        } catch {
+            self.error = .saveFailed(error.localizedDescription)
+            print("❌ Failed to update meeting: \(error)")
+        }
+    }
+    
     // MARK: - Transcript Management
     
     func saveTranscript(_ transcript: MeetingTranscript) {

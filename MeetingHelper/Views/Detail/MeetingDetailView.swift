@@ -12,6 +12,7 @@ struct MeetingDetailView: View {
     @ObservedObject var meetingManager: MeetingManager
     @State private var transcript: MeetingTranscript?
     @State private var searchText = ""
+    @State private var showingEditSheet = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -76,7 +77,7 @@ struct MeetingDetailView: View {
         }
         .padding()
         .background(Color(.windowBackgroundColor))
-        .toolbar {
+        .toolbar(content: {
             ToolbarItem {
                 Menu("Export") {
                     Button("Export as Text") {
@@ -90,6 +91,16 @@ struct MeetingDetailView: View {
                     }
                 }
             }
+            
+            ToolbarItem(placement: .primaryAction) {
+                Button("Edit Meeting") {
+                    showingEditSheet = true
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        })
+        .sheet(isPresented: $showingEditSheet) {
+            EditMeetingView(meetingManager: meetingManager, meeting: meeting)
         }
         .onAppear {
             transcript = meetingManager.getTranscript(for: meeting.id)

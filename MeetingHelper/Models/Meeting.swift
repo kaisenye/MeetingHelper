@@ -4,15 +4,21 @@ import Foundation
 
 struct Meeting: Identifiable, Codable, Hashable {
     let id: UUID
-    let title: String
+    var title: String
     let startTime: Date
     var endTime: Date?
     let participants: [String]
     var transcriptPath: String
     let audioSource: AudioSource
-    let summary: String?
+    var summary: String?
+    var description: String?
     
-    init(title: String, audioSource: AudioSource, participants: [String] = []) {
+    var duration: TimeInterval? {
+        guard let endTime = endTime else { return nil }
+        return endTime.timeIntervalSince(startTime)
+    }
+    
+    init(title: String, audioSource: AudioSource, participants: [String] = [], description: String? = nil) {
         self.id = UUID()
         self.title = title
         self.startTime = Date()
@@ -21,6 +27,7 @@ struct Meeting: Identifiable, Codable, Hashable {
         self.transcriptPath = "meetings/\(id.uuidString).json"
         self.audioSource = audioSource
         self.summary = nil
+        self.description = description
     }
     
     // Add Hashable conformance
@@ -30,6 +37,12 @@ struct Meeting: Identifiable, Codable, Hashable {
     
     static func == (lhs: Meeting, rhs: Meeting) -> Bool {
         return lhs.id == rhs.id
+    }
+    
+    // Helper method to update meeting details
+    mutating func updateDetails(title: String, description: String?) {
+        self.title = title
+        self.description = description
     }
 }
 

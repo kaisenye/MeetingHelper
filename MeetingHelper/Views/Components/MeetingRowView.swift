@@ -16,6 +16,13 @@ struct MeetingRowView: View {
                 .font(.headline)
                 .lineLimit(1)
             
+            if let description = meeting.description, !description.isEmpty {
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+            
             Text(DateFormatter.meetingFormatter.string(from: meeting.startTime))
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -41,6 +48,7 @@ struct MeetingRowView: View {
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
     }
 } 
